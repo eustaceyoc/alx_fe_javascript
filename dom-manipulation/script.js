@@ -163,7 +163,7 @@ async function fetchQuotesFromServer() {
       lastModified: Date.now()
     }));
 
-    syncWithServer(serverQuotes);
+    syncQuotes(serverQuotes);
 
   } catch (err) {
     console.error("Error fetching server quotes:", err);
@@ -186,7 +186,7 @@ async function sendLocalChangesToServer() {
   }
 }
 
-function syncWithServer(serverQuotes) {
+function syncQuotes(serverQuotes) {
   let conflictsResolved = 0;
 
   serverQuotes.forEach(serverQuote => {
