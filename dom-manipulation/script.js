@@ -151,7 +151,7 @@ function importFromJsonFile(event) {
 
 const SERVER_URL = "https://jsonplaceholder.typicode.com/posts"; 
 
-async function fetchServerQuotes() {
+async function fetchQuotesFromServer() {
   try {
     const response = await fetch(SERVER_URL);
     const serverData = await response.json();
@@ -205,5 +205,5 @@ categoryFilter.addEventListener("change", filterQuotes);
 createAddQuoteForm();
 populateCategories();
 filterQuotes();
-fetchServerQuotes(); ync
-setInterval(fetchServerQuotes, 30000);
+fetchQuotesFromServer(); ync
+setInterval(fetchQuotesFromServer, 30000);
