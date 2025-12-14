@@ -1,7 +1,7 @@
 let quotes = JSON.parse(localStorage.getItem('quotes')) || [
-  { text: "Knowledge is power.", category: "Education" },
-  { text: "Simplicity is the ultimate sophistication.", category: "Philosophy" },
-  { text: "Code is like humor. When you have to explain it, it is bad.", category: "Technology" }
+  { id: 1, text: "Knowledge is power.", category: "Education", lastModified: Date.now() },
+  { id: 2, text: "Simplicity is the ultimate sophistication.", category: "Philosophy", lastModified: Date.now() },
+  { id: 3, text: "Code is like humor. When you have to explain it, it is bad.", category: "Technology", lastModified: Date.now() }
 ];
 
 const quoteDisplay = document.getElementById("quoteDisplay");
@@ -58,6 +58,7 @@ function filterQuotes() {
   quoteDisplay.appendChild(quoteCategory);
 }
 
+
 function createAddQuoteForm() {
   const formContainer = document.createElement("div");
 
@@ -73,7 +74,6 @@ function createAddQuoteForm() {
 
   const addButton = document.createElement("button");
   addButton.textContent = "Add Quote";
-
   addButton.addEventListener("click", addQuote);
 
   formContainer.appendChild(quoteInput);
@@ -92,10 +92,15 @@ function addQuote() {
     return;
   }
 
-  const newQuote = { text: quoteText, category: quoteCategory };
+  const newQuote = {
+    id: Date.now(),
+    text: quoteText,
+    category: quoteCategory,
+    lastModified: Date.now()
+  };
+
   quotes.push(newQuote);
   saveQuotes();
-
   populateCategories();
 
   document.getElementById("newQuoteText").value = "";
@@ -103,7 +108,7 @@ function addQuote() {
 
   filterQuotes();
 }
-
+-
 function exportQuotes() {
   const json = JSON.stringify(quotes, null, 2);
   const blob = new Blob([json], { type: "application/json" });
@@ -122,13 +127,15 @@ function importFromJsonFile(event) {
   fileReader.onload = function(event) {
     try {
       const importedQuotes = JSON.parse(event.target.result);
-
       if (!Array.isArray(importedQuotes)) {
         alert("Invalid JSON format. Must be an array of quotes.");
         return;
       }
-
-      quotes.push(...importedQuotes);
+      importedQuotes.forEach(q => {
+        if (!q.id) q.id = Date.now() + Math.floor(Math.random() * 1000);
+        if (!q.lastModified) q.lastModified = Date.now();
+        quotes.push(q);
+      });
       saveQuotes();
       populateCategories();
       alert("Quotes imported successfully!");
@@ -141,10 +148,62 @@ function importFromJsonFile(event) {
   fileReader.readAsText(event.target.files[0]);
 }
 
+
+const SERVER_URL = "https://jsonplaceholder.typicode.com/posts"; 
+
+async function fetchServerQuotes() {
+  try {
+    const response = await fetch(SERVER_URL);
+    const serverData = await response.json();
+
+    const serverQuotes = serverData.map(item => ({
+      id: item.id,
+      text: item.title || item.body,
+      category: "General",
+      lastModified: Date.now()
+    }));
+
+    syncWithServer(serverQuotes);
+
+  } catch (err) {
+    console.error("Error fetching server quotes:", err);
+  }
+}
+
+function syncWithServer(serverQuotes) {
+  let conflictsResolved = 0;
+
+  serverQuotes.forEach(serverQuote => {
+    const localIndex = quotes.findIndex(q => q.id === serverQuote.id);
+
+    if (localIndex === -1) {
+      quotes.push(serverQuote);
+    } else {
+      if (serverQuote.lastModified > quotes[localIndex].lastModified) {
+        quotes[localIndex] = serverQuote;
+        conflictsResolved++;
+      }
+    }
+  });
+
+  if (conflictsResolved > 0) {
+    alert(`${conflictsResolved} quotes were updated from the server due to conflicts.`);
+  }
+
+  saveQuotes();
+  populateCategories();
+  filterQuotes();
+}
+
+
 newQuoteButton.addEventListener("click", filterQuotes);
 exportButton.addEventListener("click", exportQuotes);
 importFileInput.addEventListener("change", importFromJsonFile);
+categoryFilter.addEventListener("change", filterQuotes);
+
 
 createAddQuoteForm();
 populateCategories();
 filterQuotes();
+fetchServerQuotes(); ync
+setInterval(fetchServerQuotes, 30000);
