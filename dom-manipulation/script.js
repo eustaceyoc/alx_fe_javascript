@@ -204,6 +204,8 @@ function syncQuotes(serverQuotes) {
 
   if (conflictsResolved > 0) {
     alert(`${conflictsResolved} quotes were updated from the server due to conflicts.`);
+  } else {
+    alert("Quotes synced with server!");
   }
 
   saveQuotes();
