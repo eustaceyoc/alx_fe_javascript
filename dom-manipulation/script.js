@@ -170,6 +170,22 @@ async function fetchQuotesFromServer() {
   }
 }
 
+async function sendLocalChangesToServer() {
+  try {
+    for (const quote of quotes) {
+      await fetch(SERVER_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(quote)
+      });
+    }
+  } catch (err) {
+    console.error("Error sending quotes to server:", err);
+  }
+}
+
 function syncWithServer(serverQuotes) {
   let conflictsResolved = 0;
 
